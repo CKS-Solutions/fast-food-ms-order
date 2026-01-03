@@ -1,0 +1,48 @@
+{
+  "name": "ms-order",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --silent",
+    "test:watch": "jest --watch --silent",
+    "test:cov": "jest --coverage --silent",
+    "migrate:status": "npx knex migrate:status --cwd src/adapters/driven/rds",
+    "migrate:status:production": "npx knex migrate:status --cwd src/adapters/driven/rds --env production",
+    "migrate:latest": "npx knex migrate:latest --cwd src/adapters/driven/rds",
+    "migrate:latest:production": "npx knex migrate:latest --cwd src/adapters/driven/rds --env production",
+    "migrate:rollback": "npx knex migrate:rollback --cwd src/adapters/driven/rds",
+    "migrate:rollback:production": "npx knex migrate:rollback --cwd src/adapters/driven/rds --env production",
+    "migrate:make": "npx knex migrate:make --cwd src/adapters/driven/rds",
+    "migrate:make:production": "npx knex migrate:make --cwd src/adapters/driven/rds --env production",
+    "deploy": "npx sls deploy",
+    "deploy:local": "npx sls deploy --config serverless.local.yml --stage local",
+    "remove": "npx sls remove",
+    "remove:local": "npx sls remove --config serverless.local.yml --stage local",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.159",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.4",
+    "dotenv": "^17.2.3",
+    "jest": "^30.2.0",
+    "serverless": "^3.39.0",
+    "serverless-esbuild": "^1.56.1",
+    "serverless-localstack": "^1.3.1",
+    "serverless-prune-plugin": "2.1",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.962.0",
+    "@aws-sdk/client-sqs": "^3.960.0",
+    "axios": "^1.13.2",
+    "knex": "^3.1.0",
+    "pg": "^8.16.3"
+  }
+}

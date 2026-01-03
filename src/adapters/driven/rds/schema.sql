@@ -1,0 +1,19 @@
+CREATE TABLE `orders` (
+  `id` VARCHAR(36) NOT NULL,
+  `customer_id` VARCHAR(36) NOT NULL,
+  `total` DECIMAL(10, 2) NOT NULL,
+  `status` VARCHAR(20) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+);
+
+CREATE TABLE `order_items` (
+  `id` VARCHAR(36) NOT NULL,
+  `order_id` VARCHAR(36) NOT NULL,
+  `product_id` VARCHAR(36) NOT NULL,
+  `quantity` INT NOT NULL,
+  `price` DECIMAL(10, 2) NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
+);

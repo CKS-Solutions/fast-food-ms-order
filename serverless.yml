@@ -1,0 +1,224 @@
+service: ms-order
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'api'}
+  region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:GetQueueAttributes
+            - sqs:SendMessage
+          Resource:
+            Fn::GetAtt:
+              - CKSOrderQueue
+              - Arn
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource: "*"
+  environment:
+    REGION: ${self:provider.region}
+    STAGE: ${self:provider.stage}
+    ORDER_QUEUE_URL:
+      Ref: CKSOrderQueue
+    DB_SECRET_ARN:
+      Fn::GetAtt: [CKSOrderRDS, MasterUserSecret.SecretArn]
+    DB_HOST:
+      Fn::GetAtt: [CKSOrderRDS, Endpoint.Address]
+
+package:
+  individually: true
+  excludeDevDependencies: true
+  exclude:
+    - node_modules/@aws-sdk/**
+    - node_modules/**/@aws-sdk/**
+    - '**/*.test.ts'
+    - '**/*.spec.ts'
+
+functions:
+  createOrderProcessor:
+    handler: src/adapters/driver/lambda/create_order_processor.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /v1/order
+          method: POST
+
+  createOrder:
+    handler: src/adapters/driver/lambda/create_order.handler
+    memorySize: 128
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - CKSOrderQueue
+              - Arn
+          batchSize: 1
+          maximumRetryAttempts: 0
+
+resources:
+  Resources:
+    CKSOrderQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: CKSOrderQueue-${self:provider.stage}
+
+    CKSOrderVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.0.0.0/16
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        Tags:
+          - Key: Name
+            Value: CKSOrderVPC
+      
+    CKSOrderInternetGateway:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+          - Key: Name
+            Value: CKSOrderInternetGateway
+
+    CKSOrderVPCGatewayAttachment:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        VpcId:
+          Ref: CKSOrderVPC
+        InternetGatewayId:
+          Ref: CKSOrderInternetGateway
+
+    CKSOrderPublicRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId:
+          Ref: CKSOrderVPC
+        Tags:
+          - Key: Name
+            Value: CKSOrderPublicRouteTable
+
+    CKSOrderPublicRoute:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId:
+          Ref: CKSOrderPublicRouteTable
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId:
+          Ref: CKSOrderInternetGateway
+
+    CKSOrderPublicSubnetA:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: CKSOrderVPC
+        CidrBlock: 10.0.1.0/24
+        AvailabilityZone: us-east-1a
+        MapPublicIpOnLaunch: true
+
+    CKSOrderPublicSubnetB:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId:
+          Ref: CKSOrderVPC
+        CidrBlock: 10.0.2.0/24
+        AvailabilityZone: us-east-1b
+        MapPublicIpOnLaunch: true
+
+    CKSOrderPublicSubnetARouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId:
+          Ref: CKSOrderPublicSubnetA
+        RouteTableId:
+          Ref: CKSOrderPublicRouteTable
+
+    CKSOrderPublicSubnetBRouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId:
+          Ref: CKSOrderPublicSubnetB
+        RouteTableId:
+          Ref: CKSOrderPublicRouteTable
+
+    CKSOrderRDSSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: RDS SG
+        VpcId:
+          Ref: CKSOrderVPC
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 5432
+            ToPort: 5432
+            CidrIp: 0.0.0.0/0
+        SecurityGroupEgress:
+          - IpProtocol: '-1'
+            CidrIp: 0.0.0.0/0
+
+    CKSOrderPublicSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: Subnet group for CKS Order RDS
+        SubnetIds:
+          - Ref: CKSOrderPublicSubnetA
+          - Ref: CKSOrderPublicSubnetB
+        Tags:
+          - Key: Name
+            Value: CKSOrderPublicSubnetGroup
+
+    CKSOrderRDS:
+      Type: AWS::RDS::DBInstance
+      DeletionPolicy: Delete
+      Properties:
+        DBInstanceIdentifier: ms-order-postgres
+        AllocatedStorage: '20'
+        DBInstanceClass: db.t4g.micro
+        Engine: postgres
+        EngineVersion: '15.15'
+        DBName: ms_order
+
+        MasterUsername: postgres
+        ManageMasterUserPassword: true
+        MasterUserSecret:
+          KmsKeyId: alias/aws/secretsmanager
+        
+        PubliclyAccessible: true
+        MultiAZ: false
+        BackupRetentionPeriod: 0
+        DeletionProtection: false
+        EnablePerformanceInsights: false
+
+        VPCSecurityGroups:
+          - Fn::GetAtt: [CKSOrderRDSSecurityGroup, GroupId]
+        DBSubnetGroupName:
+          Ref: CKSOrderPublicSubnetGroup
+  
+  Outputs:
+    DbSecretArn:
+      Value:
+        Fn::GetAtt: [CKSOrderRDS, MasterUserSecret.SecretArn]
+
+plugins:
+  - serverless-esbuild
+  - serverless-prune-plugin
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    target: node20
+    exclude:
+      - better-sqlite3
+      - mysql2
+      - mysql
+      - sqlite3
+      - tedious
+      - pg-query-stream
+      - oracledb
