@@ -1,7 +1,9 @@
 import type { Knex } from "knex";
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: '../../../../.env' });
+if (process.env.NODE_ENV !== 'ci') {
+  dotenv.config({ path: '../../../../.env' });
+}
 
 const config: { [key: string]: Knex.Config } = {
   development: {
