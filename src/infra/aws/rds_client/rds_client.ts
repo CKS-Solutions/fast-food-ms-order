@@ -39,9 +39,7 @@ export class RDSClientWrapper {
     pool?: Knex.PoolConfig;
     useSsl?: boolean;
   }): RDSClientWrapper {
-    if (!instance) {
-      instance = new RDSClientWrapper({ host, user, password, pool, useSsl });
-    }
+    instance = instance ?? new RDSClientWrapper({ host, user, password, pool, useSsl });
 
     return instance;
   }
