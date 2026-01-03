@@ -38,3 +38,13 @@ jobs:
 
       - name: Deploy to AWS
         run: serverless deploy --stage api
+
+      - name: Configure env for migrations
+        run: |
+          echo "RDS_HOSTNAME=${{ secrets.RDS_HOSTNAME }}" >> $GITHUB_ENV
+          echo "RDS_PORT=${{ vars.RDS_PORT }}" >> $GITHUB_ENV
+          echo "RDS_USERNAME=${{ secrets.RDS_USERNAME }}" >> $GITHUB_ENV
+          echo "RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Migrate Database
+        run: npm run migrate:latest:production
