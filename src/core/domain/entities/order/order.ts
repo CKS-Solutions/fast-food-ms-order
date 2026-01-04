@@ -42,4 +42,9 @@ export class Order {
 			updatedAt: Date.now(),
 		})
 	}
+
+	updateStatus(status: OrderStatus): void {
+		this.status = status
+		this.updated_at = Date.now()
+	}
 }

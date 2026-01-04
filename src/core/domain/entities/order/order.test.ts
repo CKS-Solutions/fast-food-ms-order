@@ -41,4 +41,19 @@ describe('Order', () => {
       expect(order.updated_at).toBe(NOW)
     })
   })
+
+  describe('updateStatus', () => {
+    it('should update the status and updated_at fields', () => {
+      const order = Order.create(500)
+      const initialUpdatedAt = order.updated_at
+
+      const NEW_NOW = NOW + 10_000
+      jest.spyOn(Date, 'now').mockReturnValue(NEW_NOW)
+      order.updateStatus(OrderStatus.Received)
+
+      expect(order.status).toBe(OrderStatus.Received)
+      expect(order.updated_at).toBe(NEW_NOW)
+      expect(order.updated_at).not.toBe(initialUpdatedAt)
+    })
+  })
 })

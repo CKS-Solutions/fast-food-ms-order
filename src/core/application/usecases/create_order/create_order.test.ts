@@ -14,6 +14,8 @@ describe('CreateOrderUseCase', () => {
     jest.spyOn(Date, 'now').mockReturnValue(now)
     orderRepository = {
       create: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
     } as IOrderRepository
     orderItemRepository = {
       createMany: jest.fn(),

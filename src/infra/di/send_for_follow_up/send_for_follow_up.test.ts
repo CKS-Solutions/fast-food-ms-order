@@ -1,4 +1,4 @@
-import { CreateOrderContainerFactory } from './create_order'
+import { SendForFollowUpContainerFactory } from './send_for_follow_up'
 
 jest.mock('@aws/rds_client', () => ({
   RDSClientWrapper: {
@@ -10,21 +10,16 @@ jest.mock('@driven_rds/order', () => ({
   OrderRepository: jest.fn(),
 }))
 
-jest.mock('@driven_rds/order-item', () => ({
-  OrderItemRepository: jest.fn(),
-}))
-
-jest.mock('@usecases/create_order', () => ({
-  CreateOrderUseCase: jest.fn(),
+jest.mock('@usecases/send_for_follow_up', () => ({
+  SendForFollowUpUseCase: jest.fn(),
 }))
 
 import { RDSClientWrapper } from '@aws/rds_client'
 import { OrderRepository } from '@driven_rds/order'
-import { OrderItemRepository } from '@driven_rds/order-item'
-import { CreateOrderUseCase } from '@usecases/create_order'
+import { SendForFollowUpUseCase } from '@usecases/send_for_follow_up'
 import { RDSCredentials } from '@utils/rds'
 
-describe('CreateOrderContainerFactory', () => {
+describe('SendForFollowUpContainerFactory', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -36,7 +31,7 @@ describe('CreateOrderContainerFactory', () => {
       password: 'pass',
     }
 
-    const factory = new CreateOrderContainerFactory(credentialsMock)
+    const factory = new SendForFollowUpContainerFactory(credentialsMock)
 
     expect(RDSClientWrapper.getInstance).toHaveBeenCalledWith(credentialsMock)
 
@@ -48,21 +43,15 @@ describe('CreateOrderContainerFactory', () => {
     const rdsClient = (rdsMock.getInstance as jest.Mock).mock.results[0].value
 
     const orderRepoMock = OrderRepository as jest.MockedClass<typeof OrderRepository>
-    const orderItemRepoMock = OrderItemRepository as jest.MockedClass<typeof OrderItemRepository>
 
     expect(orderRepoMock).toHaveBeenCalledWith(rdsClient)
-    expect(orderItemRepoMock).toHaveBeenCalledWith(rdsClient)
 
     const orderRepoInstance = (OrderRepository as jest.Mock).mock.instances[0]
-    const orderItemRepoInstance = (OrderItemRepository as jest.Mock).mock.instances[0]
 
-    expect(CreateOrderUseCase).toHaveBeenCalledWith(
-      orderRepoInstance,
-      orderItemRepoInstance
-    )
+    expect(SendForFollowUpUseCase).toHaveBeenCalledWith(orderRepoInstance)
 
     expect(factory.usecase).toBe(
-      (CreateOrderUseCase as jest.Mock).mock.instances[0]
+      (SendForFollowUpUseCase as jest.Mock).mock.instances[0]
     )
   })
 })
