@@ -23,6 +23,10 @@ provider:
           Action:
             - secretsmanager:GetSecretValue
           Resource: "*"
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource: "*"
 
   environment:
     REGION: ${self:provider.region}
