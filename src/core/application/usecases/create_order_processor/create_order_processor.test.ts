@@ -15,26 +15,9 @@ describe('CreateOrderProcessorUseCase', () => {
     usecase = new CreateOrderProcessorUseCase(orderQueue)
   })
 
-  describe('when total is invalid', () => {
-    test.each([
-      { total: 0 },
-      { total: -10 },
-      { total: undefined },
-    ])('should throw BadRequest for total: $total', async ({ total }) => {
-      const params = {
-        total,
-        products: [{ product_id: 'prod-123', quantity: 1, price: 100 }],
-      } as CreateOrderInputDTO
-
-      await expect(usecase.execute(params)).rejects.toBeInstanceOf(HTTPBadRequest)
-      await expect(usecase.execute(params)).rejects.toThrow('Total must be greater than zero')
-    })
-  })
-
   describe('when no products are provided', () => {
     it('should throw BadRequest', async () => {
       const params: CreateOrderInputDTO = {
-        total: 100,
         products: [],
       }
 
@@ -50,7 +33,6 @@ describe('CreateOrderProcessorUseCase', () => {
       { product_id: undefined },
     ])('should throw BadRequest for product_id: "$product_id"', async ({ product_id }) => {
       const params = {
-        total: 100,
         products: [{ product_id, quantity: 1, price: 100 }],
       } as CreateOrderInputDTO
 
@@ -66,7 +48,6 @@ describe('CreateOrderProcessorUseCase', () => {
       { quantity: undefined },
     ])('should throw BadRequest for quantity: $quantity', async ({ quantity }) => {
       const params = {
-        total: 100,
         products: [{ product_id: 'prod-123', quantity, price: 100 }],
       } as CreateOrderInputDTO
 
@@ -82,7 +63,6 @@ describe('CreateOrderProcessorUseCase', () => {
       { price: undefined },
     ])('should throw BadRequest for price: $price', async ({ price }) => {
       const params = {
-        total: 100,
         products: [{ product_id: 'prod-123', quantity: 1, price }],
       } as CreateOrderInputDTO
 
@@ -96,7 +76,6 @@ describe('CreateOrderProcessorUseCase', () => {
       it('should queue the order processing request successfully', async () => {
         const params: CreateOrderInputDTO = {
           customer_id: 'cust-123',
-          total: 200,
           products: [
             { product_id: 'prod-123', quantity: 2, price: 100 },
           ],
@@ -112,7 +91,6 @@ describe('CreateOrderProcessorUseCase', () => {
     describe('without customer_id', () => {
       it('should queue the order processing request successfully', async () => {
         const params: CreateOrderInputDTO = {
-          total: 150,
           products: [
             { product_id: 'prod-456', quantity: 3, price: 50 },
           ],

@@ -3,10 +3,12 @@ import { OrderStatus } from '@entities/order/order.types'
 import { CreateOrderInputDTO } from '@dto/create_order'
 import { IOrderItemRepository } from '@ports/order-item_repository'
 import { IOrderRepository } from '@ports/order_repository'
+import { ILambdaAdapter } from '@ports/lambda'
 
 describe('CreateOrderUseCase', () => {
   let orderRepository: IOrderRepository
   let orderItemRepository: IOrderItemRepository
+  let lambdaAdapter: ILambdaAdapter
   let useCase: CreateOrderUseCase
   const now = 1_700_000_000_000
 
@@ -20,9 +22,13 @@ describe('CreateOrderUseCase', () => {
     orderItemRepository = {
       createMany: jest.fn(),
     } as IOrderItemRepository
+    lambdaAdapter = {
+      invokeEvent: jest.fn(),
+    } as ILambdaAdapter
     useCase = new CreateOrderUseCase(
       orderRepository,
-      orderItemRepository
+      orderItemRepository,
+      lambdaAdapter,
     )
   })
 
@@ -32,7 +38,6 @@ describe('CreateOrderUseCase', () => {
 
   const baseParams: CreateOrderInputDTO = {
     customer_id: 'cust-123',
-    total: 150.00,
     products: [
       { product_id: 'prod-1', quantity: 2, price: 50.00 },
       { product_id: 'prod-2', quantity: 1, price: 50.00 },
