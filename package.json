@@ -13,7 +13,6 @@
     "migrate:rollback": "npx knex migrate:rollback --cwd src/adapters/driven/rds",
     "migrate:rollback:production": "npx knex migrate:rollback --cwd src/adapters/driven/rds --env production",
     "migrate:make": "npx knex migrate:make --cwd src/adapters/driven/rds",
-    "migrate:make:production": "npx knex migrate:make --cwd src/adapters/driven/rds --env production",
     "deploy": "npx sls deploy",
     "deploy:local": "npx sls deploy --config serverless.local.yml --stage local",
     "remove": "npx sls remove",

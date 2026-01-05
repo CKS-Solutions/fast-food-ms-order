@@ -17,3 +17,12 @@ CREATE TABLE `order_items` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
 );
+
+CREATE TABLE `order_logs` (
+  `id` VARCHAR(36) NOT NULL,
+  `order_id` VARCHAR(36) NOT NULL,
+  `status` VARCHAR(20) NOT NULL,
+  `timestamp` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
+);

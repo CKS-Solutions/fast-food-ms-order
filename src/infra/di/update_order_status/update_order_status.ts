@@ -1,5 +1,6 @@
 import { RDSClientWrapper } from "@aws/rds_client";
 import { OrderRepository } from "@driven_rds/order";
+import { OrderLogRepository } from "@driven_rds/order-log";
 import { UpdateOrderStatusUseCase } from "@usecases/update_order_status";
 import { RDSCredentials } from "@utils/rds";
 
@@ -16,7 +17,8 @@ export class UpdateOrderStatusContainerFactory {
     })
 
     const orderRepo = new OrderRepository(rdsClient)
+    const orderLogRepo = new OrderLogRepository(rdsClient)
 
-    this.usecase = new UpdateOrderStatusUseCase(orderRepo)
+    this.usecase = new UpdateOrderStatusUseCase(orderRepo, orderLogRepo)
   }
 }

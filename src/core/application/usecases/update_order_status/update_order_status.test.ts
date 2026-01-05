@@ -1,13 +1,16 @@
 import { UpdateOrderStatusUseCase } from './update_order_status';
 import { OrderStatus } from '@entities/order';
+import { IOrderLogRepository } from '@ports/order-log_repository';
 import { IOrderRepository } from '@ports/order_repository';
 import { HTTPBadRequest, HTTPNotFound } from '@utils/http';
 
 describe('UpdateOrderStatusUseCase', () => {
   let orderRepository: jest.Mocked<IOrderRepository>;
+  let orderLogRepository: jest.Mocked<IOrderLogRepository>;
   let useCase: UpdateOrderStatusUseCase;
 
   const makeOrder = (status: OrderStatus) => ({
+    id: 'order-1',
     status,
     updateStatus: jest.fn(),
   });
@@ -16,9 +19,14 @@ describe('UpdateOrderStatusUseCase', () => {
     orderRepository = {
       findById: jest.fn(),
       update: jest.fn(),
-    } as unknown as jest.Mocked<IOrderRepository>;
+      create: jest.fn(),
+    } as jest.Mocked<IOrderRepository>;
 
-    useCase = new UpdateOrderStatusUseCase(orderRepository);
+    orderLogRepository = {
+      create: jest.fn(),
+    } as jest.Mocked<IOrderLogRepository>;
+
+    useCase = new UpdateOrderStatusUseCase(orderRepository, orderLogRepository);
   });
 
   afterEach(() => {
@@ -99,6 +107,14 @@ describe('UpdateOrderStatusUseCase', () => {
 
     expect(order.updateStatus).toHaveBeenCalledWith(OrderStatus.InPreparation);
     expect(orderRepository.update).toHaveBeenCalledWith(order);
+    expect(orderLogRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: expect.any(String),
+        order_id: 'order-1',
+        status: OrderStatus.InPreparation,
+        timestamp: expect.any(Number),
+      }),
+    );
     expect(result).toEqual({
       message: 'Order order-1 status updated to in_preparation successfully',
     });

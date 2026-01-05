@@ -6,6 +6,7 @@ import { RDSCredentials } from "@utils/rds"
 import { AwsRegion, AwsStage } from "@aws/utils"
 import { LambdaClientWrapper } from "@aws/lambda_client"
 import { LambdaAdapter } from "@driven_lambda/lambda"
+import { OrderLogRepository } from "@driven_rds/order-log"
 
 export class CreateOrderContainerFactory {
 	usecase: CreateOrderUseCase
@@ -22,8 +23,9 @@ export class CreateOrderContainerFactory {
 
 		const orderRepo = new OrderRepository(rdsClient)
 		const orderItemRepo = new OrderItemRepository(rdsClient)
+		const orderLogRepo = new OrderLogRepository(rdsClient)
 		const lambdaAdapter = new LambdaAdapter(lambdaClient)
 
-		this.usecase = new CreateOrderUseCase(orderRepo, orderItemRepo, lambdaAdapter)
+		this.usecase = new CreateOrderUseCase(orderRepo, orderItemRepo, orderLogRepo, lambdaAdapter)
 	}
 }

@@ -15,6 +15,10 @@ jest.mock('@driven_rds/order-item', () => ({
   OrderItemRepository: jest.fn(),
 }))
 
+jest.mock('@driven_rds/order-log', () => ({
+  OrderLogRepository: jest.fn(),
+}))
+
 jest.mock('@aws/lambda_client', () => ({
   LambdaClientWrapper: jest.fn(),
 }))
@@ -30,6 +34,7 @@ jest.mock('@usecases/create_order', () => ({
 import { RDSClientWrapper } from '@aws/rds_client'
 import { OrderRepository } from '@driven_rds/order'
 import { OrderItemRepository } from '@driven_rds/order-item'
+import { OrderLogRepository } from '@driven_rds/order-log'
 import { CreateOrderUseCase } from '@usecases/create_order'
 import { RDSCredentials } from '@utils/rds'
 import { LambdaClientWrapper } from '@aws/lambda_client'
@@ -68,19 +73,23 @@ describe('CreateOrderContainerFactory', () => {
 
     const orderRepoMock = OrderRepository as jest.MockedClass<typeof OrderRepository>
     const orderItemRepoMock = OrderItemRepository as jest.MockedClass<typeof OrderItemRepository>
+    const orderLogRepoMock = OrderLogRepository as jest.MockedClass<typeof OrderLogRepository>
     const lambdaAdapterMock = LambdaAdapter as jest.MockedClass<typeof LambdaAdapter>
 
     expect(orderRepoMock).toHaveBeenCalledWith(rdsClient)
     expect(orderItemRepoMock).toHaveBeenCalledWith(rdsClient)
+    expect(orderLogRepoMock).toHaveBeenCalledWith(rdsClient)
     expect(lambdaAdapterMock).toHaveBeenCalledWith(lambdaClient)
 
     const orderRepoInstance = (OrderRepository as jest.Mock).mock.instances[0]
     const orderItemRepoInstance = (OrderItemRepository as jest.Mock).mock.instances[0]
+    const orderLogRepoInstance = (OrderLogRepository as jest.Mock).mock.instances[0]
     const lambdaAdapterInstance = (LambdaAdapter as jest.Mock).mock.instances[0]
 
     expect(CreateOrderUseCase).toHaveBeenCalledWith(
       orderRepoInstance,
       orderItemRepoInstance,
+      orderLogRepoInstance,
       lambdaAdapterInstance
     )
 
