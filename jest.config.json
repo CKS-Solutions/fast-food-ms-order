@@ -11,6 +11,7 @@
     "^@di/(.*)$": "<rootDir>/src/infra/di/$1",
     "^@driven_sqs/(.*)$": "<rootDir>/src/adapters/driven/sqs/$1",
     "^@driven_rds/(.*)$": "<rootDir>/src/adapters/driven/rds/$1",
+    "^@driven_lambda/(.*)$": "<rootDir>/src/adapters/driven/lambda/$1",
     "^@usecases/(.*)$": "<rootDir>/src/core/application/usecases/$1",
     "^@entities/(.*)$": "<rootDir>/src/core/domain/entities/$1",
     "^@ports/(.*)$": "<rootDir>/src/core/application/ports/$1",
