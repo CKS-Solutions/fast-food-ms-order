@@ -10,12 +10,17 @@ jest.mock('@driven_rds/order', () => ({
   OrderRepository: jest.fn(),
 }))
 
+jest.mock('@driven_rds/order-log', () => ({
+  OrderLogRepository: jest.fn(),
+}))
+
 jest.mock('@usecases/send_for_follow_up', () => ({
   SendForFollowUpUseCase: jest.fn(),
 }))
 
 import { RDSClientWrapper } from '@aws/rds_client'
 import { OrderRepository } from '@driven_rds/order'
+import { OrderLogRepository } from '@driven_rds/order-log'
 import { SendForFollowUpUseCase } from '@usecases/send_for_follow_up'
 import { RDSCredentials } from '@utils/rds'
 
@@ -43,12 +48,15 @@ describe('SendForFollowUpContainerFactory', () => {
     const rdsClient = (rdsMock.getInstance as jest.Mock).mock.results[0].value
 
     const orderRepoMock = OrderRepository as jest.MockedClass<typeof OrderRepository>
+    const orderLogRepoMock = OrderLogRepository as jest.MockedClass<typeof OrderLogRepository>
 
     expect(orderRepoMock).toHaveBeenCalledWith(rdsClient)
+    expect(orderLogRepoMock).toHaveBeenCalledWith(rdsClient)
 
     const orderRepoInstance = (OrderRepository as jest.Mock).mock.instances[0]
+    const orderLogRepoInstance = (OrderLogRepository as jest.Mock).mock.instances[0]
 
-    expect(SendForFollowUpUseCase).toHaveBeenCalledWith(orderRepoInstance)
+    expect(SendForFollowUpUseCase).toHaveBeenCalledWith(orderRepoInstance, orderLogRepoInstance)
 
     expect(factory.usecase).toBe(
       (SendForFollowUpUseCase as jest.Mock).mock.instances[0]

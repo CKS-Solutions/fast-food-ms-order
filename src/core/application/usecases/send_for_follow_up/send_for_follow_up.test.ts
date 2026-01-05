@@ -3,18 +3,25 @@ import { PaymentTopicType } from '@dto/send_for_follow_up';
 import { OrderStatus } from '@entities/order';
 import { HTTPBadRequest, HTTPNotFound } from '@utils/http';
 import { IOrderRepository } from '@ports/order_repository';
+import { IOrderLogRepository } from '@ports/order-log_repository';
 
 describe('SendForFollowUpUseCase', () => {
   let orderRepo: jest.Mocked<IOrderRepository>;
+  let orderLogRepo: jest.Mocked<IOrderLogRepository>;
   let useCase: SendForFollowUpUseCase;
 
   beforeEach(() => {
     orderRepo = {
       findById: jest.fn(),
       update: jest.fn(),
-    } as unknown as jest.Mocked<IOrderRepository>;
+      create: jest.fn(),
+    } as jest.Mocked<IOrderRepository>;
 
-    useCase = new SendForFollowUpUseCase(orderRepo);
+    orderLogRepo = {
+      create: jest.fn(),
+    } as jest.Mocked<IOrderLogRepository>;
+
+    useCase = new SendForFollowUpUseCase(orderRepo, orderLogRepo);
   });
 
   afterEach(() => {
@@ -23,6 +30,7 @@ describe('SendForFollowUpUseCase', () => {
 
   it('should update order status when payment status is paid', async () => {
     const order = {
+      id: 'order-123',
       updateStatus: jest.fn(),
     };
 
@@ -39,6 +47,14 @@ describe('SendForFollowUpUseCase', () => {
     expect(orderRepo.findById).toHaveBeenCalledWith('order-123');
     expect(order.updateStatus).toHaveBeenCalledWith(OrderStatus.Received);
     expect(orderRepo.update).toHaveBeenCalledWith(order);
+    expect(orderLogRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: expect.any(String),
+        order_id: 'order-123',
+        status: OrderStatus.Received,
+        timestamp: expect.any(Number),
+      }),
+    );
   });
 
   it('should do nothing when message type is not StatusUpdate', async () => {

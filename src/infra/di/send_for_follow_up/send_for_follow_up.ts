@@ -1,5 +1,6 @@
 import { RDSClientWrapper } from "@aws/rds_client";
 import { OrderRepository } from "@driven_rds/order";
+import { OrderLogRepository } from "@driven_rds/order-log";
 import { SendForFollowUpUseCase } from "@usecases/send_for_follow_up";
 import { RDSCredentials } from "@utils/rds";
 
@@ -16,7 +17,8 @@ export class SendForFollowUpContainerFactory {
     })
 
     const orderRepo = new OrderRepository(rdsClient)
+    const orderLogRepo = new OrderLogRepository(rdsClient)
 
-    this.usecase = new SendForFollowUpUseCase(orderRepo)
+    this.usecase = new SendForFollowUpUseCase(orderRepo, orderLogRepo)
   }
 }

@@ -4,10 +4,12 @@ import { CreateOrderInputDTO } from '@dto/create_order'
 import { IOrderItemRepository } from '@ports/order-item_repository'
 import { IOrderRepository } from '@ports/order_repository'
 import { ILambdaAdapter } from '@ports/lambda'
+import { IOrderLogRepository } from '@ports/order-log_repository'
 
 describe('CreateOrderUseCase', () => {
   let orderRepository: IOrderRepository
   let orderItemRepository: IOrderItemRepository
+  let orderLogRepository: IOrderLogRepository
   let lambdaAdapter: ILambdaAdapter
   let useCase: CreateOrderUseCase
   const now = 1_700_000_000_000
@@ -22,12 +24,16 @@ describe('CreateOrderUseCase', () => {
     orderItemRepository = {
       createMany: jest.fn(),
     } as IOrderItemRepository
+    orderLogRepository = {
+      create: jest.fn(),
+    } as IOrderLogRepository
     lambdaAdapter = {
       invokeEvent: jest.fn(),
     } as ILambdaAdapter
     useCase = new CreateOrderUseCase(
       orderRepository,
       orderItemRepository,
+      orderLogRepository,
       lambdaAdapter,
     )
   })
@@ -56,6 +62,14 @@ describe('CreateOrderUseCase', () => {
     await expect(useCase.execute(baseParams)).rejects.toThrow('Failed to create order items')
     expect(orderRepository.create).toHaveBeenCalledTimes(1)
     expect(orderItemRepository.createMany).toHaveBeenCalledTimes(1)
+  })
+
+  it('should fail if could not create order log', async () => {
+    jest.spyOn(orderLogRepository, 'create').mockRejectedValueOnce(new Error('DB error'))
+    await expect(useCase.execute(baseParams)).rejects.toThrow('Failed to create order log')
+    expect(orderRepository.create).toHaveBeenCalledTimes(1)
+    expect(orderItemRepository.createMany).toHaveBeenCalledTimes(1)
+    expect(orderLogRepository.create).toHaveBeenCalledTimes(1)
   })
 
   it('should create order and items successfully', async () => {
@@ -87,5 +101,14 @@ describe('CreateOrderUseCase', () => {
         price: 50.00,
       }),
     ])
+
+    expect(orderLogRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: expect.any(String),
+        order_id: expect.any(String),
+        status: OrderStatus.WaitingPayment,
+        timestamp: now,
+      })
+    )
   })
 })

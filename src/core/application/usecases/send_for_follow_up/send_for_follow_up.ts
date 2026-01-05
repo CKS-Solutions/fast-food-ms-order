@@ -1,12 +1,23 @@
 import { PaymentTopicMessage, PaymentTopicType } from "@dto/send_for_follow_up";
 import { OrderStatus } from "@entities/order";
+import { OrderLog } from "@entities/order-log";
+import { IOrderLogRepository } from "@ports/order-log_repository";
 import { IOrderRepository } from "@ports/order_repository";
 import { HTTPBadRequest, HTTPNotFound } from "@utils/http";
 
 const PAID_STATUS = "paid";
 
 export class SendForFollowUpUseCase {
-  constructor(private readonly orderRepo: IOrderRepository) {}
+  private readonly orderRepo: IOrderRepository;
+  private readonly orderLogRepo: IOrderLogRepository;
+
+  constructor(
+    orderRepo: IOrderRepository,
+    orderLogRepo: IOrderLogRepository
+  ) {
+    this.orderRepo = orderRepo;
+    this.orderLogRepo = orderLogRepo;
+  }
 
   async execute(message: string): Promise<void> {
     const parsedMessage = this.parseMessage(message);
@@ -29,6 +40,9 @@ export class SendForFollowUpUseCase {
     order.updateStatus(OrderStatus.Received);
 
     await this.orderRepo.update(order);
+
+    const log = OrderLog.create(order.id, OrderStatus.Received);
+    await this.orderLogRepo.create(log);
   }
 
   private parseMessage(message: string): PaymentTopicMessage {
