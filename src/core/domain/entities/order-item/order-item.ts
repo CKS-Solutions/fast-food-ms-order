@@ -1,3 +1,4 @@
+import { OrderItemsOutputDTO } from "@dto/order"
 import { randomUUID } from "node:crypto"
 
 export class OrderItem {
@@ -40,5 +41,13 @@ export class OrderItem {
       quantity,
       price,
     })
+  }
+
+  toOutputDTO(): OrderItemsOutputDTO {
+    return {
+      product_id: this.product_id,
+      quantity: this.quantity,
+      price: this.price,
+    }
   }
 }

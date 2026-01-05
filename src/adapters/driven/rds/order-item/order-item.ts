@@ -20,4 +20,16 @@ export class OrderItemRepository implements IOrderItemRepository {
 
     return orderItems;
   }
+
+  async findByOrderId(orderId: string): Promise<OrderItem[]> {
+    const results = await this.client.connection(TABLE_NAME).where({ order_id: orderId }).select();
+
+    return results.map(result => new OrderItem({
+      id: result.id,
+      orderId: result.order_id,
+      productId: result.product_id,
+      quantity: result.quantity,
+      price: result.price,
+    }));
+  }
 }

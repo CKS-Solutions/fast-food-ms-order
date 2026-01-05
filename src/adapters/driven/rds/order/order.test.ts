@@ -92,6 +92,62 @@ describe('OrderRepository', () => {
     });
   });
 
+  describe('findAll', () => {
+    it('should return a list of orders with pagination', async () => {
+      const mockResults = [
+        {
+          id: 'order1',
+          customer_id: 'customer1',
+          status: 'waiting_payment',
+          total: 100,
+          created_at: 1620000000000,
+          updated_at: 1620000000000,
+        },
+        {
+          id: 'order2',
+          customer_id: 'customer2',
+          status: 'received',
+          total: 200,
+          created_at: 1620003600000,
+          updated_at: 1620003600000,
+        },
+      ];
+
+      const mockSelect = jest.fn().mockResolvedValue(mockResults);
+      const mockOrderBy = jest.fn().mockReturnValue({
+        select: mockSelect,
+      });
+      const mockOffset = jest.fn().mockReturnValue({
+        orderBy: mockOrderBy,
+      });
+      const mockLimit = jest.fn().mockReturnValue({
+        offset: mockOffset,
+      });
+      const mockWhereNotIn = jest.fn().mockReturnValue({
+        limit: mockLimit,
+      });
+      const mockConnection = jest.fn().mockReturnValue({
+        whereNotIn: mockWhereNotIn,
+      });
+
+      const rdsClient = {
+        connection: mockConnection,
+      } as unknown as RDSClientWrapper;
+
+      const orderRepo = new OrderRepository(rdsClient);
+      const results = await orderRepo.findAll(1, 10);
+      expect(mockConnection).toHaveBeenCalledWith('orders');
+      expect(mockWhereNotIn).toHaveBeenCalledWith('status', ['cancelled', 'finished', 'waiting_payment']);
+      expect(mockLimit).toHaveBeenCalledWith(10);
+      expect(mockOffset).toHaveBeenCalledWith(0);
+      expect(mockOrderBy).toHaveBeenCalledWith('created_at', 'asc');
+      expect(results).toHaveLength(2);
+      expect(results[0]).toBeInstanceOf(Order);
+      expect(results[0].id).toBe('order1');
+      expect(results[1].id).toBe('order2');
+    });
+  });
+
   describe('update', () => {
     it('should update the order in the database and return the order', async () => {
       const mockUpdate = jest.fn().mockResolvedValue(undefined);

@@ -20,12 +20,15 @@ describe('CreateOrderUseCase', () => {
       create: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
+      findAll: jest.fn(),
     } as IOrderRepository
     orderItemRepository = {
       createMany: jest.fn(),
+      findByOrderId: jest.fn(),
     } as IOrderItemRepository
     orderLogRepository = {
       create: jest.fn(),
+      findByOrderId: jest.fn(),
     } as IOrderLogRepository
     lambdaAdapter = {
       invokeEvent: jest.fn(),

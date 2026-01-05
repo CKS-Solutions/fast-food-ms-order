@@ -56,4 +56,44 @@ describe('Order', () => {
       expect(order.updated_at).not.toBe(initialUpdatedAt)
     })
   })
+
+  describe('toOutputDTO', () => {
+    it('should convert the Order to OrderOutputDTO correctly', () => {
+      const order = new Order({
+        id: 'order-123',
+        customerId: 'customer-456',
+        status: OrderStatus.Received,
+        total: 2000,
+        createdAt: 1_700_000_000_000,
+        updatedAt: 1_700_000_100_000,
+      })
+
+      const dto = order.toOutputDTO()
+      expect(dto).toEqual({
+        id: 'order-123',
+        customer_id: 'customer-456',
+        status: OrderStatus.Received,
+        total: 2000,
+        created_at: 1_700_000_000_000,
+        create_at_date: new Date(1_700_000_000_000).toISOString(),
+        updated_at: 1_700_000_100_000,
+        updated_at_date: new Date(1_700_000_100_000).toISOString(),
+        items: [],
+        logs: [],
+      })
+    })
+
+    it('should set customer_id to null in DTO if undefined', () => {
+      const order = new Order({
+        id: 'order-123',
+        status: OrderStatus.Received,
+        total: 2000,
+        createdAt: 1_700_000_000_000,
+        updatedAt: 1_700_000_100_000,
+      })
+
+      const dto = order.toOutputDTO()
+      expect(dto.customer_id).toBeNull()
+    })
+  })
 })

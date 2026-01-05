@@ -18,12 +18,14 @@ describe('UpdateOrderStatusUseCase', () => {
   beforeEach(() => {
     orderRepository = {
       findById: jest.fn(),
+      findAll: jest.fn(),
       update: jest.fn(),
       create: jest.fn(),
     } as jest.Mocked<IOrderRepository>;
 
     orderLogRepository = {
       create: jest.fn(),
+      findByOrderId: jest.fn(),
     } as jest.Mocked<IOrderLogRepository>;
 
     useCase = new UpdateOrderStatusUseCase(orderRepository, orderLogRepository);

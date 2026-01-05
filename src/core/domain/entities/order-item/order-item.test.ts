@@ -28,4 +28,24 @@ describe('OrderItem', () => {
       expect(orderItem.price).toBe(500)
     })
   })
+
+  describe('toOutputDTO', () => {
+    it('should convert the OrderItem to OrderItemsOutputDTO correctly', () => {
+      const orderItem = new OrderItem({
+        id: 'item-123',
+        productId: 'product-456',
+        orderId: 'order-789',
+        quantity: 3,
+        price: 1500,
+      })
+
+      const outputDTO = orderItem.toOutputDTO()
+
+      expect(outputDTO).toEqual({
+        product_id: 'product-456',
+        quantity: 3,
+        price: 1500,
+      })
+    })
+  })
 })
