@@ -59,12 +59,69 @@ functions:
           batchSize: 1
           maximumRetryAttempts: 0
 
+  sendForFollowUp:
+    handler: src/adapters/driver/lambda/send_for_follow_up.handler
+    memorySize: 128
+
+  initOrderPrepare:
+    handler: src/adapters/driver/lambda/init_order_prepare.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /v1/order/{orderId}/prepare/init
+          method: PUT
+
+  finishOrderPrepare:
+    handler: src/adapters/driver/lambda/finish_order_prepare.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /v1/order/{orderId}/prepare/finish
+          method: PUT
+
+  finishOrder:
+    handler: src/adapters/driver/lambda/finish_order.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /v1/order/{orderId}/finish
+          method: PUT
+    
+  cancelOrder:
+    handler: src/adapters/driver/lambda/cancel_order.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /v1/order/{orderId}/cancel
+          method: PUT
+
 resources:
   Resources:
     CKSOrderQueue:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: CKSOrderQueue-${self:provider.stage}
+
+    CKSOrderFollowUpSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Protocol: lambda
+        TopicArn:
+          Fn::ImportValue: cks-payment-topic-arn
+        Endpoint: 
+          Fn::GetAtt:
+            - SendForFollowUpLambdaFunction
+            - Arn
+
+    CKSOrderAllowInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName:
+          Ref: SendForFollowUpLambdaFunction
+        Action: lambda:InvokeFunction
+        Principal: sns.amazonaws.com
+        SourceArn:
+          Fn::ImportValue: cks-payment-topic-arn
 
 plugins:
   - serverless-esbuild
