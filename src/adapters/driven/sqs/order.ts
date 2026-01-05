@@ -1,4 +1,4 @@
-import { DeleteMessageCommand, SendMessageCommand } from "@aws-sdk/client-sqs";
+import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { SQSClientWrapper } from "@aws/sqs_client";
 import { CreateOrderInputDTO } from "@dto/create_order";
 import { IOrderQueue } from "@ports/order_queue";

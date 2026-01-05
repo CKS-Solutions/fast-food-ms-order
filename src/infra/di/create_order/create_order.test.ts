@@ -1,5 +1,5 @@
+import { AwsRegion, AwsStage } from '@aws/utils'
 import { CreateOrderContainerFactory } from './create_order'
-import { AwsStage } from '@aws/utils'
 
 jest.mock('@aws/rds_client', () => ({
   RDSClientWrapper: {
@@ -15,6 +15,18 @@ jest.mock('@driven_rds/order-item', () => ({
   OrderItemRepository: jest.fn(),
 }))
 
+jest.mock('@driven_rds/order-log', () => ({
+  OrderLogRepository: jest.fn(),
+}))
+
+jest.mock('@aws/lambda_client', () => ({
+  LambdaClientWrapper: jest.fn(),
+}))
+
+jest.mock('@driven_lambda/lambda', () => ({
+  LambdaAdapter: jest.fn(),
+}))
+
 jest.mock('@usecases/create_order', () => ({
   CreateOrderUseCase: jest.fn(),
 }))
@@ -22,10 +34,16 @@ jest.mock('@usecases/create_order', () => ({
 import { RDSClientWrapper } from '@aws/rds_client'
 import { OrderRepository } from '@driven_rds/order'
 import { OrderItemRepository } from '@driven_rds/order-item'
+import { OrderLogRepository } from '@driven_rds/order-log'
 import { CreateOrderUseCase } from '@usecases/create_order'
 import { RDSCredentials } from '@utils/rds'
+import { LambdaClientWrapper } from '@aws/lambda_client'
+import { LambdaAdapter } from '@driven_lambda/lambda'
 
 describe('CreateOrderContainerFactory', () => {
+  let region = AwsRegion.USEast1
+  let stage = AwsStage.Local
+
   beforeEach(() => {
     jest.clearAllMocks()
   })
@@ -37,7 +55,7 @@ describe('CreateOrderContainerFactory', () => {
       password: 'pass',
     }
 
-    const factory = new CreateOrderContainerFactory(credentialsMock)
+    const factory = new CreateOrderContainerFactory(credentialsMock, stage, region)
 
     expect(RDSClientWrapper.getInstance).toHaveBeenCalledWith(credentialsMock)
 
@@ -46,20 +64,33 @@ describe('CreateOrderContainerFactory', () => {
     expect(rdsMock).toBeDefined()
     expect(rdsMock.getInstance).toHaveBeenCalledWith(credentialsMock)
 
+    const lambdaClientMock = LambdaClientWrapper as jest.MockedClass<typeof LambdaClientWrapper>
+
+    expect(lambdaClientMock).toHaveBeenCalledWith(region, stage)
+
     const rdsClient = (rdsMock.getInstance as jest.Mock).mock.results[0].value
+    const lambdaClient = (LambdaClientWrapper as jest.Mock).mock.instances[0]
 
     const orderRepoMock = OrderRepository as jest.MockedClass<typeof OrderRepository>
     const orderItemRepoMock = OrderItemRepository as jest.MockedClass<typeof OrderItemRepository>
+    const orderLogRepoMock = OrderLogRepository as jest.MockedClass<typeof OrderLogRepository>
+    const lambdaAdapterMock = LambdaAdapter as jest.MockedClass<typeof LambdaAdapter>
 
     expect(orderRepoMock).toHaveBeenCalledWith(rdsClient)
     expect(orderItemRepoMock).toHaveBeenCalledWith(rdsClient)
+    expect(orderLogRepoMock).toHaveBeenCalledWith(rdsClient)
+    expect(lambdaAdapterMock).toHaveBeenCalledWith(lambdaClient)
 
     const orderRepoInstance = (OrderRepository as jest.Mock).mock.instances[0]
     const orderItemRepoInstance = (OrderItemRepository as jest.Mock).mock.instances[0]
+    const orderLogRepoInstance = (OrderLogRepository as jest.Mock).mock.instances[0]
+    const lambdaAdapterInstance = (LambdaAdapter as jest.Mock).mock.instances[0]
 
     expect(CreateOrderUseCase).toHaveBeenCalledWith(
       orderRepoInstance,
-      orderItemRepoInstance
+      orderItemRepoInstance,
+      orderLogRepoInstance,
+      lambdaAdapterInstance
     )
 
     expect(factory.usecase).toBe(

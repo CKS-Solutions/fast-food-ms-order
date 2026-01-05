@@ -47,7 +47,6 @@ describe('OrderQueue', () => {
   describe('when input is valid', () => {
     it('should send a message to SQS with correct payload', async () => {
       const params: CreateOrderInputDTO = {
-        total: 100,
         products: [
           { product_id: 'prod-1', quantity: 2, price: 50 },
         ],

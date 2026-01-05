@@ -2,8 +2,9 @@ version: '3.8'
 
 services:
   postgres:
-    container_name: main_postgres
-    image: postgres:13
+    container_name: ms_order_postgres
+    image: postgres:15
+    restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password

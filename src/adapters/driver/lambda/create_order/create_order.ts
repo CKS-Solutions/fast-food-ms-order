@@ -17,7 +17,7 @@ export async function handler(event: SQSEvent): Promise<APIGatewayProxyResult> {
 		const region = getRegion()
 
 		const rdsCredentials = await getRDSCredentials(region, stage)
-		const container = new CreateOrderContainerFactory(rdsCredentials)
+		const container = new CreateOrderContainerFactory(rdsCredentials, stage, region)
 
 		const record = JSON.parse(event.Records[0].body) as CreateOrderInputDTO
 		const res = await container.usecase.execute(record)

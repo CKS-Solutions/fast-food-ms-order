@@ -10,16 +10,12 @@ export class CreateOrderProcessorUseCase {
   }
 
   async execute(params: CreateOrderInputDTO): Promise<{ message: string }> {
-    if (!params.total || params.total <= 0) {
-      throw new HTTPBadRequest("Total must be greater than zero");
-    }
-
-    if (!params.products || !params.products.length) {
+    if (!params?.products?.length) {
       throw new HTTPBadRequest("At least one product is required");
     }
 
     for (const product of params.products) {
-      if (!product.product_id || !product.product_id.trim()) {
+      if (!product?.product_id?.trim()) {
         throw new HTTPBadRequest("Product ID is required for each product");
       }
 

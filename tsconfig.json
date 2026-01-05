@@ -27,6 +27,7 @@
       "@aws/*": ["./src/infra/aws/*"],
       "@driven_sqs/*": ["./src/adapters/driven/sqs/*"],
       "@driven_rds/*": ["./src/adapters/driven/rds/*"],
+      "@driven_lambda/*": ["./src/adapters/driven/lambda/*"],
       "@di/*": ["./src/infra/di/*"],
       "@utils/*": ["./src/utils/*"],
     }
