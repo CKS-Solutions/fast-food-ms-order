@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { OrderStatus } from "./order.types"
+import { OrderOutputDTO } from "@dto/order"
 
 export class Order {
 	id: string
@@ -46,5 +47,20 @@ export class Order {
 	updateStatus(status: OrderStatus): void {
 		this.status = status
 		this.updated_at = Date.now()
+	}
+
+	toOutputDTO(): OrderOutputDTO {
+		return {
+			id: this.id,
+			customer_id: this.customer_id || null,
+			status: this.status,
+			total: this.total,
+			created_at: this.created_at,
+			create_at_date: new Date(Number(this.created_at)).toISOString(),
+			updated_at: this.updated_at,
+			updated_at_date: new Date(Number(this.updated_at)).toISOString(),
+			items: [],
+			logs: [],
+		}
 	}
 }

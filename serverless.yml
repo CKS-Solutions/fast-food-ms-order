@@ -74,7 +74,7 @@ functions:
     events:
       - http:
           path: /v1/order/{orderId}/prepare/init
-          method: PUT
+          method: PATCH
 
   finishOrderPrepare:
     handler: src/adapters/driver/lambda/finish_order_prepare.handler
@@ -82,7 +82,7 @@ functions:
     events:
       - http:
           path: /v1/order/{orderId}/prepare/finish
-          method: PUT
+          method: PATCH
 
   finishOrder:
     handler: src/adapters/driver/lambda/finish_order.handler
@@ -90,7 +90,7 @@ functions:
     events:
       - http:
           path: /v1/order/{orderId}/finish
-          method: PUT
+          method: PATCH
     
   cancelOrder:
     handler: src/adapters/driver/lambda/cancel_order.handler
@@ -98,7 +98,23 @@ functions:
     events:
       - http:
           path: /v1/order/{orderId}/cancel
-          method: PUT
+          method: PATCH
+
+  listOrders:
+    handler: src/adapters/driver/lambda/list_orders.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /v1/order
+          method: GET
+
+  getOrderStatus:
+    handler: src/adapters/driver/lambda/get_order_status.handler
+    memorySize: 128
+    events:
+      - http:
+          path: /v1/order/{orderId}/status
+          method: GET
 
 resources:
   Resources:

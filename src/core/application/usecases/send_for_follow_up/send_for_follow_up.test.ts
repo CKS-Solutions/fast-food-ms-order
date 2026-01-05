@@ -15,10 +15,12 @@ describe('SendForFollowUpUseCase', () => {
       findById: jest.fn(),
       update: jest.fn(),
       create: jest.fn(),
+      findAll: jest.fn(),
     } as jest.Mocked<IOrderRepository>;
 
     orderLogRepo = {
       create: jest.fn(),
+      findByOrderId: jest.fn(),
     } as jest.Mocked<IOrderLogRepository>;
 
     useCase = new SendForFollowUpUseCase(orderRepo, orderLogRepo);

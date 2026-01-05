@@ -1,3 +1,4 @@
+import { OrderLogOutputDTO } from "@dto/order";
 import { OrderStatus } from "@entities/order/order.types";
 import { randomUUID } from "node:crypto";
 
@@ -34,5 +35,13 @@ export class OrderLog {
       status,
       timestamp: Date.now(),
     });
+  }
+
+  toOutputDTO(): OrderLogOutputDTO {
+    return {
+      status: this.status,
+      changed_at: this.timestamp,
+      changed_at_date: new Date(Number(this.timestamp)).toISOString(),
+    };
   }
 }
