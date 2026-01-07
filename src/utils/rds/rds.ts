@@ -1,8 +1,7 @@
 import { SMClientWrapper } from "@aws/sm_client";
 import { AwsRegion, AwsStage } from "@aws/utils";
-import { HTTPPreconditionFailed } from "@utils/http";
 
-const SECRET_ID = process.env.DB_SECRET_ARN || '';
+const SECRET_ID = 'rds/fast-food-database-credentials';
 
 export type RDSCredentials = {
   host: string;
@@ -19,11 +18,10 @@ export async function getCredentialsFromRDSSecretManager(
   smClient: SMClientWrapper,
 ): Promise<RDSCredentials> {
   const secretString = await smClient.getSecretValue(SECRET_ID);
-
   const credentials = JSON.parse(secretString);
 
   return {
-    host: process.env.DB_HOST!,
+    host: credentials.host,
     user: credentials.username,
     password: credentials.password,
     pool: {
@@ -47,14 +45,6 @@ export async function getRDSCredentials(
   }
 
   const smClient = new SMClientWrapper(region, stage);
-
-  if (!process.env.DB_SECRET_ARN) {
-    throw new HTTPPreconditionFailed('DB_SECRET_ARN environment variable is not set');
-  }
-
-  if (!process.env.DB_HOST) {
-    throw new HTTPPreconditionFailed('DB_HOST environment variable is not set');
-  }
 
   return getCredentialsFromRDSSecretManager(smClient);
 }
