@@ -1,6 +1,5 @@
 import { getRDSCredentials, getCredentialsFromRDSSecretManager } from './rds';
 import { AwsRegion, AwsStage } from '@aws/utils';
-import { HTTPPreconditionFailed } from '@utils/http';
 
 jest.mock('@aws/sm_client', () => ({
   SMClientWrapper: jest.fn().mockImplementation(() => ({
@@ -32,25 +31,8 @@ describe('RDS Credentials', () => {
       });
     });
 
-    it('should throw if DB_SECRET_ARN is not set', async () => {
-      process.env.DB_SECRET_ARN = '';
-      process.env.DB_HOST = 'some-host';
-      await expect(getRDSCredentials(AwsRegion.USEast1, AwsStage.Prod))
-        .rejects.toThrow(HTTPPreconditionFailed);
-    });
-
-    it('should throw if DB_HOST is not set', async () => {
-      process.env.DB_SECRET_ARN = 'secret-arn';
-      process.env.DB_HOST = '';
-      await expect(getRDSCredentials(AwsRegion.USEast1, AwsStage.Prod))
-        .rejects.toThrow(HTTPPreconditionFailed);
-    });
-
     it('should call getCredentialsFromRDSSecretManager with SMClientWrapper', async () => {
-      process.env.DB_SECRET_ARN = 'secret-arn';
-      process.env.DB_HOST = 'db-host';
-
-      const mockSecretValue = JSON.stringify({ username: 'admin', password: 'pass' });
+      const mockSecretValue = JSON.stringify({ host: 'db-host', username: 'admin', password: 'pass' });
       (SMClientWrapper as jest.MockedClass<typeof SMClientWrapper>).mockImplementation(() => ({
         getSecretValue: jest.fn().mockResolvedValue(mockSecretValue),
       }) as any);
@@ -69,15 +51,14 @@ describe('RDS Credentials', () => {
 
   describe('getCredentialsFromRDSSecretManager', () => {
     it('should parse secret and return RDSCredentials', async () => {
-      const mockSecretValue = JSON.stringify({ username: 'u', password: 'p' });
+      const mockSecretValue = JSON.stringify({ host: 'db-host', username: 'u', password: 'p' });
       const smClient = {
         getSecretValue: jest.fn().mockResolvedValue(mockSecretValue),
       } as unknown as SMClientWrapper;
 
-      process.env.DB_HOST = 'db-host';
       const creds = await getCredentialsFromRDSSecretManager(smClient);
 
-      expect(smClient.getSecretValue).toHaveBeenCalledWith('');
+      expect(smClient.getSecretValue).toHaveBeenCalledWith('rds/fast-food-database-credentials');
       expect(creds).toEqual({
         host: 'db-host',
         user: 'u',
