@@ -60,16 +60,7 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        run: npm test -- --coverage || true
-        continue-on-error: true
-
-      - name: Ensure coverage file exists
-        run: |
-          if [ ! -f coverage/lcov.info ]; then
-            echo "No coverage found, creating empty report"
-            mkdir -p coverage
-            touch coverage/lcov.info
-          fi
+        run: npm test -- --coverage
 
       - uses: sonarsource/sonarqube-scan-action@v6
         env:
