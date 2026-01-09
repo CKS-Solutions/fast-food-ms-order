@@ -10,6 +10,10 @@ Serviço designado a criar e atualizar os pedidos gerados pelo sistema
 
 <img width="629" height="430" alt="image" src="https://github.com/user-attachments/assets/c433e2f7-5fce-448d-9cee-de70eb1fe5eb" />
 
+### Evidencia de testes Sonar
+
+<img width="1919" height="916" alt="image" src="https://github.com/user-attachments/assets/5c9fd134-69d9-4aff-9240-ba81bd8a6f00" />
+
 ### Estrutura de arquivos
 
 ```
